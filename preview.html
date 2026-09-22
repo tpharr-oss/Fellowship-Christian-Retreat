@@ -202,6 +202,7 @@
       padding: 14px 28px; min-height: 52px; margin-top: 4px;
     }
     .paypal-btn:hover { background: #F2BA36; }
+    .pay-note { margin: 10px 0 0; }
     #paypal-wrap + button { display: block; margin: 20px auto 0; }
 
     footer { text-align: center; color: var(--muted); font-size: 14px; padding: 0 16px 40px; }
@@ -298,7 +299,7 @@
               <label for="paymentMethod">How are you paying?</label>
               <select id="paymentMethod" name="paymentMethod" required>
                 <option value="">Choose one</option>
-                <option id="paypal-option" value="PayPal">PayPal</option>
+                <option id="paypal-option" value="PayPal">Pay online now (card, PayPal, or Venmo)</option>
                 <option>Check</option>
                 <option>Cash</option>
                 <option>Online Payment</option>
@@ -354,7 +355,8 @@
         <p id="thanks-msg">Your submission has been received. We're grateful for your support of Fellowship Christian Retreat.</p>
         <div id="paypal-wrap" hidden>
           <p class="hint" id="paypal-hint"></p>
-          <a id="paypal-link" class="paypal-btn" target="_blank" rel="noopener">Pay with PayPal</a>
+          <a id="paypal-link" class="paypal-btn" target="_blank" rel="noopener">Pay now</a>
+          <p class="hint pay-note">Debit or credit card, PayPal, or Venmo. You don't need a PayPal account.</p>
         </div>
         <button type="button" id="again">Submit another</button>
       </div>
@@ -520,12 +522,12 @@
             var link = paypalLinkFor(total);
             $('paypal-link').href = link.href;
             $('paypal-hint').textContent = link.prefilled
-              ? 'One more step: finish your ' + fmt(total) + ' payment on PayPal.'
-              : 'One more step: finish your payment on PayPal. Please enter ' + fmt(total) + ' as the amount.';
+              ? 'One more step: click below to pay your ' + fmt(total) + '.'
+              : 'One more step: click below to pay, and enter ' + fmt(total) + ' as the amount.';
             $('paypal-wrap').hidden = false;
             $('paypal-link').removeAttribute('href');
             $('paypal-link').setAttribute('aria-disabled', 'true');
-            $('paypal-hint').textContent += ' (In the live form, this button opens the retreat\'s PayPal page.)';
+            $('paypal-hint').textContent += ' (In the live form, this button opens the secure payment page.)';
           } else {
             $('paypal-wrap').hidden = true;
           }
