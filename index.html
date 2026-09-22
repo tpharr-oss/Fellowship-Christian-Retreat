@@ -191,6 +191,14 @@
       background: transparent; cursor: pointer;
     }
 
+    .paypal-btn {
+      display: inline-block; font-weight: 600; font-size: 18px; text-decoration: none;
+      color: #1B1B1B; background: #FFC439; border-radius: 10px;
+      padding: 14px 28px; min-height: 52px; margin-top: 4px;
+    }
+    .paypal-btn:hover { background: #F2BA36; }
+    #paypal-wrap + button { display: block; margin: 20px auto 0; }
+
     footer { text-align: center; color: var(--muted); font-size: 14px; padding: 0 16px 40px; }
     footer a { color: var(--forest); }
   </style>
@@ -284,6 +292,7 @@
               <label for="paymentMethod">How are you paying?</label>
               <select id="paymentMethod" name="paymentMethod" required>
                 <option value="">Choose one</option>
+                <option id="paypal-option" value="PayPal">PayPal</option>
                 <option>Check</option>
                 <option>Cash</option>
                 <option>Online Payment</option>
@@ -337,6 +346,10 @@
       <div id="thanks" class="thanks" hidden>
         <h2>Thank you!</h2>
         <p id="thanks-msg">Your submission has been received. We're grateful for your support of Fellowship Christian Retreat.</p>
+        <div id="paypal-wrap" hidden>
+          <p class="hint" id="paypal-hint"></p>
+          <a id="paypal-link" class="paypal-btn" target="_blank" rel="noopener">Pay with PayPal</a>
+        </div>
         <button type="button" id="again">Submit another</button>
       </div>
     </form>
@@ -359,6 +372,17 @@
     function todayISO() {
       var d = new Date();
       return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+    }
+
+    var paypalUrl = ((window.FCR_CONFIG && window.FCR_CONFIG.paypalUrl) || '').trim().replace(/\/+$/, '');
+    if (!paypalUrl) $('paypal-option').remove();
+
+    // PayPal.Me links accept the amount as the last path segment.
+    function paypalLinkFor(total) {
+      if (/^https:\/\/(www\.)?paypal\.me\/[^\/?#]+$/i.test(paypalUrl)) {
+        return { href: paypalUrl + '/' + total.toFixed(2) + 'USD', prefilled: true };
+      }
+      return { href: paypalUrl, prefilled: false };
     }
 
     if (staff) {
@@ -479,6 +503,17 @@
             $('thanks-msg').textContent = 'Recorded ' + fmt(payload.donation + payload.tickets + payload.sponsorship + payload.auction) + ' for ' + payload.name + '.';
           } else {
             $('thanks-msg').textContent = 'We received your ' + fmt(payload.donation + payload.tickets + payload.sponsorship + payload.auction) + ' gift. Thank you for supporting Fellowship Christian Retreat.';
+          }
+          var total = payload.donation + payload.tickets + payload.sponsorship + payload.auction;
+          if (!staff && payload.paymentMethod === 'PayPal' && paypalUrl) {
+            var link = paypalLinkFor(total);
+            $('paypal-link').href = link.href;
+            $('paypal-hint').textContent = link.prefilled
+              ? 'One more step: finish your ' + fmt(total) + ' payment on PayPal.'
+              : 'One more step: finish your payment on PayPal. Please enter ' + fmt(total) + ' as the amount.';
+            $('paypal-wrap').hidden = false;
+          } else {
+            $('paypal-wrap').hidden = true;
           }
           $('form-body').hidden = true;
           $('thanks').hidden = false;

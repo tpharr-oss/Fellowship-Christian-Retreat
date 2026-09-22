@@ -23,7 +23,7 @@ template in `template/`.
 | J Auction Item / Details | Shown only when an Auction amount is entered |
 | K Other / Notes | Notes. Public entries start with "Online form" so you can tell them apart. |
 | L Total Payment | **Not written.** The sheet's own formula keeps calculating it. |
-| M Payment Method | Cash, Check, Online Payment, Credit Card, or Other (the template's dropdown values) |
+| M Payment Method | Cash, Check, Online Payment, Credit Card, or Other (the template's dropdown values). PayPal is recorded as **Online Payment**, with "PayPal" added to Notes. |
 | N Check / Ref # | Staff mode only |
 | O Payment Status | Public entries are always **Pending**. Staff choose Paid, Pending, or Partial. |
 
@@ -58,7 +58,7 @@ Each browser remembers the key after its first successful staff entry.
    - Who has access: **Anyone**
 
    Click Deploy and approve the permissions. Copy the **Web app URL** (it ends in `/exec`).
-5. **Connect the page.** Paste that URL into `config.js`:
+5. **Connect the page.** Paste that URL into `config.js` (and your PayPal link, if you're using PayPal):
    ```js
    window.FCR_CONFIG = { scriptUrl: 'https://script.google.com/macros/s/…/exec' };
    ```
@@ -68,6 +68,21 @@ Each browser remembers the key after its first successful staff entry.
 
 **If you change `Code.gs` later:** go to **Deploy → Manage deployments → Edit (pencil) →
 Version: New version → Deploy**. The URL stays the same.
+
+## PayPal
+
+Put the retreat's PayPal link in `config.js` as `paypalUrl`. When it's set, **PayPal**
+appears as a payment choice. After a PayPal submission is recorded, the thank-you
+screen shows a **Pay with PayPal** button.
+
+- With a **PayPal.Me** link (`https://paypal.me/YourName`), the button opens PayPal
+  with the total already filled in.
+- With any other PayPal link (for example, a Donate button link), the button opens that
+  page and tells the person what amount to enter.
+
+The form can't tell whether the person actually finished paying on PayPal. PayPal rows
+come in as **Pending**. Check the PayPal account, then mark the row **Paid** and put
+the PayPal transaction ID in Check / Ref #.
 
 ## Notes
 

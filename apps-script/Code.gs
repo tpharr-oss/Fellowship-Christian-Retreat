@@ -79,7 +79,11 @@ function buildRow_(data, isStaff, now) {
     throw new Error('Enter at least one amount.');
   }
 
-  var method = PAYMENT_METHODS.indexOf(data.paymentMethod) >= 0 ? data.paymentMethod : 'Other';
+  // PayPal isn't in the sheet's dropdown, so it's recorded as Online Payment
+  // with "PayPal" added to the notes.
+  var isPayPal = data.paymentMethod === 'PayPal';
+  var method = isPayPal ? 'Online Payment'
+    : PAYMENT_METHODS.indexOf(data.paymentMethod) >= 0 ? data.paymentMethod : 'Other';
 
   var date = now;
   var status = 'Pending';
@@ -94,6 +98,7 @@ function buildRow_(data, isStaff, now) {
   }
 
   var notes = clean_(data.notes);
+  if (isPayPal) notes = notes ? 'PayPal - ' + notes : 'PayPal';
   if (!isStaff) notes = notes ? 'Online form: ' + notes : 'Online form';
 
   return [
