@@ -297,7 +297,7 @@
                 <option>Check</option>
                 <option>Cash</option>
                 <option>Online Payment</option>
-                <option>Credit Card</option>
+                <option id="card-option">Credit Card</option>
                 <option>Other</option>
               </select>
             </div>
@@ -378,6 +378,8 @@
 
     var paypalUrl = ((window.FCR_CONFIG && window.FCR_CONFIG.paypalUrl) || '').trim().replace(/\/+$/, '');
     if (!paypalUrl) $('paypal-option').remove();
+    // Donors pay by card through the online option; staff can still log in-person card payments.
+    if (!staff) $('card-option').remove();
 
     // PayPal.Me links accept the amount as the last path segment.
     function paypalLinkFor(total) {
