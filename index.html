@@ -502,7 +502,7 @@
             try { localStorage.setItem('fcrStaffKey', payload.staffKey || ''); } catch (e) {}
             $('thanks-msg').textContent = 'Recorded ' + fmt(payload.donation + payload.tickets + payload.sponsorship + payload.auction) + ' for ' + payload.name + '.';
           } else {
-            $('thanks-msg').textContent = 'We received your ' + fmt(payload.donation + payload.tickets + payload.sponsorship + payload.auction) + ' gift. Thank you for supporting Fellowship Christian Retreat.';
+            $('thanks-msg').textContent = 'We received your ' + fmt(payload.donation + payload.tickets + payload.sponsorship + payload.auction) + ' commitment. Thank you for supporting Fellowship Christian Retreat.';
           }
           var total = payload.donation + payload.tickets + payload.sponsorship + payload.auction;
           if (!staff && payload.paymentMethod === 'PayPal' && paypalUrl) {
