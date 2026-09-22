@@ -1,7 +1,7 @@
 window.FCR_CONFIG = {
   // Paste the Web app URL from your Google Apps Script deployment here.
   // It looks like: https://script.google.com/macros/s/XXXXXXXX/exec
-  scriptUrl: '',
+  scriptUrl: 'https://script.google.com/macros/s/AKfycbzPGfzmT-Dd99Q7GwqUdv-aVgRZyrnyLg0XpEIuXv2cyrt48sBCi3qAHWpQYek4o0xTEQ/exec',
 
   // The retreat's PayPal link. Leave blank to hide the PayPal option.
   // A PayPal.Me link (https://paypal.me/YourName) gets the total filled in
