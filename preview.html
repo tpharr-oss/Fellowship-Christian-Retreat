@@ -164,6 +164,27 @@
       text-transform: uppercase; background: var(--olive); color: #fff;
       border-radius: 99px; padding: 2px 10px; margin-left: 8px; vertical-align: middle;
     }
+    .check {
+      display: flex; gap: 10px; align-items: center; font-weight: 600;
+      padding: 12px 14px; border: 1px solid var(--line); border-radius: 10px;
+      background: var(--bg); cursor: pointer;
+    }
+    .check input { width: 20px; height: 20px; min-height: 0; margin: 0; accent-color: var(--forest); flex: none; }
+    .item-card {
+      border: 1px solid var(--line); border-radius: 10px; padding: 14px;
+      background: var(--bg); margin-top: 12px;
+    }
+    .item-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+    .item-head strong { color: var(--forest); }
+    .link-btn {
+      font: inherit; font-size: 15px; color: var(--muted); background: none; border: 0;
+      text-decoration: underline; cursor: pointer; padding: 6px; min-height: 0;
+    }
+    .secondary {
+      font: inherit; font-weight: 600; color: var(--forest); background: transparent;
+      border: 1px solid var(--forest); border-radius: 8px; padding: 10px 16px;
+      min-height: 44px; margin-top: 12px; cursor: pointer;
+    }
     .preview-bar {
       background: var(--olive); color: #fff; text-align: center;
       font-size: 15px; font-weight: 600; padding: 10px 16px;
@@ -210,11 +231,11 @@
   </style>
 </head>
 <body>
-  <div class="preview-bar" role="note">Preview only. Submissions aren't saved, and the PayPal button won't charge anything.</div>
+  <div class="preview-bar" role="note">Preview only. Submissions aren't saved, and the payment button won't charge anything.</div>
   <header class="hero">
     <p class="eyebrow">Annual Fundraising Event</p>
     <h1>Fellowship Christian Retreat at Crow's Neck</h1>
-    <p>Thank you for supporting the retreat. Use this form to make a donation, buy tickets, become a sponsor, or record an auction item you won. One payment can be split across all four.</p>
+    <p id="hero-copy">Thank you for supporting the retreat. Use this form to make a donation, buy tickets, become a sponsor, pay for an auction item you won, or donate an item to the auction.</p>
   </header>
 
   <main>
@@ -259,7 +280,7 @@
 
         <fieldset>
           <legend>Your gift</legend>
-          <p class="hint">Fill in any that apply. Leave the rest blank.</p>
+          <p class="hint">Fill in any that apply. Leave the rest blank. One payment can be split across all four.</p>
           <div class="amounts">
             <div class="amount">
               <label for="donation">Donation</label>
@@ -277,13 +298,13 @@
               <div class="money"><span>$</span><input id="sponsorship" name="sponsorship" inputmode="decimal" placeholder="0.00"></div>
             </div>
             <div class="amount">
-              <label for="auction">Auction</label>
-              <small>Winning bid on an auction item</small>
+              <label for="auction">Auction item I won</label>
+              <small>Paying for an item you won at the auction</small>
               <div class="money"><span>$</span><input id="auction" name="auction" inputmode="decimal" placeholder="0.00"></div>
             </div>
           </div>
           <div id="auction-item-wrap" style="margin-top:14px" hidden>
-            <label for="auctionItem">Auction item you won</label>
+            <label for="auctionItem">Which item did you win?</label>
             <input id="auctionItem" name="auctionItem" placeholder="e.g. Weekend cabin stay">
           </div>
           <div class="total" aria-live="polite">
@@ -292,8 +313,22 @@
           </div>
         </fieldset>
 
+        <fieldset id="items-section">
+          <legend>Donating an item to the auction?</legend>
+          <p class="hint">Gift baskets, gift cards, art, experiences, and more. This is for items you're giving to the auction, not items you won.</p>
+          <label class="check" for="donatingItem">
+            <input type="checkbox" id="donatingItem">
+            <span>Yes, I'm donating an item for the auction</span>
+          </label>
+          <div id="items-wrap" hidden>
+            <div id="items-list"></div>
+            <button type="button" class="secondary" id="add-item">+ Add another item</button>
+          </div>
+        </fieldset>
+
         <fieldset>
           <legend>Payment</legend>
+          <p class="hint" id="no-payment-hint" hidden>Only donating an item? No payment is needed, so you can skip this.</p>
           <div class="grid">
             <div class="full">
               <label for="paymentMethod">How are you paying?</label>
@@ -371,7 +406,8 @@
   // Preview copy of index.html: never contacts Google or PayPal.
   window.FCR_CONFIG = {
     scriptUrl: 'preview',
-    paypalUrl: 'https://www.paypal.com/donate/?hosted_button_id=RM5T2WRZLW4S2'
+    paypalUrl: 'https://www.paypal.com/donate/?hosted_button_id=RM5T2WRZLW4S2',
+    itemDonations: true
   };
   </script>
   <script>
@@ -430,12 +466,89 @@
       });
       $('total').textContent = fmt(sum);
       $('auction-item-wrap').hidden = !(parseMoney($('auction').value) > 0);
+      $('no-payment-hint').hidden = !(sum <= 0 && $('donatingItem').checked);
       return sum;
     }
     AMOUNTS.forEach(function (k) { $(k).addEventListener('input', updateTotal); });
     ['name', 'email'].forEach(function (k) {
       $(k).addEventListener('input', function () { $(k).removeAttribute('aria-invalid'); });
     });
+
+    var ITEM_TYPES = ['Gift basket', 'Gift card', 'Art', 'Experience or service', 'Other'];
+    var MAX_ITEMS = 10;
+    var itemSeq = 0;
+
+    function addItem() {
+      var list = $('items-list');
+      if (list.children.length >= MAX_ITEMS) return;
+      var n = itemSeq++;
+      var card = document.createElement('div');
+      card.className = 'item-card';
+      card.innerHTML =
+        '<div class="item-head"><strong></strong><button type="button" class="link-btn">Remove</button></div>' +
+        '<div class="grid">' +
+          '<div><label for="item-type-' + n + '">Type of item</label>' +
+            '<select id="item-type-' + n + '" data-f="type">' +
+            ITEM_TYPES.map(function (t) { return '<option>' + t + '</option>'; }).join('') +
+            '</select></div>' +
+          '<div class="full"><label for="item-desc-' + n + '">Describe the item</label>' +
+            '<input id="item-desc-' + n + '" data-f="description" placeholder="e.g. Coffee lover\'s basket with mugs and local beans"></div>' +
+          '<div><label for="item-value-' + n + '">Estimated value</label>' +
+            '<div class="money"><span>$</span><input id="item-value-' + n + '" data-f="value" inputmode="decimal" placeholder="0.00"></div></div>' +
+          '<div><label for="item-bid-' + n + '">Suggested starting bid <span class="opt">(optional)</span></label>' +
+            '<div class="money"><span>$</span><input id="item-bid-' + n + '" data-f="startingBid" inputmode="decimal" placeholder="0.00"></div></div>' +
+        '</div>';
+      card.querySelector('.link-btn').addEventListener('click', function () {
+        card.remove();
+        if (!$('items-list').children.length) { $('donatingItem').checked = false; syncItems(); }
+        renumberItems();
+      });
+      list.appendChild(card);
+      renumberItems();
+    }
+    function renumberItems() {
+      var cards = $('items-list').children;
+      for (var i = 0; i < cards.length; i++) {
+        cards[i].querySelector('.item-head strong').textContent = 'Item ' + (i + 1);
+      }
+      $('add-item').hidden = cards.length >= MAX_ITEMS;
+    }
+    function syncItems() {
+      var on = $('donatingItem').checked;
+      $('items-wrap').hidden = !on;
+      if (on && !$('items-list').children.length) addItem();
+      if (!on) $('items-list').innerHTML = '';
+      updateTotal();
+    }
+    function readItems() {
+      if (!$('donatingItem').checked) return [];
+      return Array.prototype.map.call($('items-list').children, function (card) {
+        var get = function (f) { return card.querySelector('[data-f="' + f + '"]'); };
+        return {
+          type: get('type').value,
+          description: get('description').value.trim(),
+          value: parseMoney(get('value').value),
+          startingBid: parseMoney(get('startingBid').value),
+          _desc: get('description'), _value: get('value'), _bid: get('startingBid')
+        };
+      });
+    }
+    $('donatingItem').addEventListener('change', syncItems);
+    if (!(window.FCR_CONFIG && window.FCR_CONFIG.itemDonations)) {
+      $('items-section').remove();
+      $('hero-copy').textContent = 'Thank you for supporting the retreat. Use this form to make a donation, buy tickets, become a sponsor, or pay for an auction item you won.';
+      $('donatingItem') || (function () {
+        // Keep the item helpers working with the section gone.
+        var cb = document.createElement('input'); cb.type = 'checkbox'; cb.id = 'donatingItem'; cb.hidden = true;
+        var list = document.createElement('div'); list.id = 'items-list'; list.hidden = true;
+        var wrap = document.createElement('div'); wrap.id = 'items-wrap'; wrap.hidden = true;
+        var add = document.createElement('button'); add.type = 'button'; add.id = 'add-item'; add.hidden = true;
+        [cb, list, wrap, add].forEach(function (el) { form.appendChild(el); });
+      })();
+    }
+    $('add-item').addEventListener('click', addItem);
+    $('items-list').addEventListener('input', function (e) { e.target.removeAttribute('aria-invalid'); });
+    syncItems();
 
     function showStatus(msg, ok) {
       var s = $('status');
@@ -454,9 +567,22 @@
       if (!name) fields.push('your name');
       if (!emailOk) fields.push('a valid email');
       var bad = AMOUNTS.some(function (k) { return isNaN(parseMoney($(k).value)); });
+      var total = bad ? 0 : updateTotal();
+      var items = readItems();
+      var missingDesc = false, missingValue = false;
+      items.forEach(function (it) {
+        it._desc.setAttribute('aria-invalid', it.description ? 'false' : 'true');
+        var valueOk = !isNaN(it.value) && it.value > 0;
+        it._value.setAttribute('aria-invalid', valueOk ? 'false' : 'true');
+        it._bid.setAttribute('aria-invalid', isNaN(it.startingBid) ? 'true' : 'false');
+        if (!it.description) missingDesc = true;
+        if (!valueOk || isNaN(it.startingBid)) missingValue = true;
+      });
       if (bad) fields.push('amounts as numbers only');
-      else if (updateTotal() <= 0) fields.push('at least one amount');
-      if (!$('paymentMethod').value) fields.push('how you are paying');
+      else if (total <= 0 && !items.length) fields.push('at least one amount or an auction item you\'re donating');
+      if (missingDesc) fields.push('a description of each donated item');
+      if (missingValue) fields.push('an estimated value for each donated item');
+      if (total > 0 && !$('paymentMethod').value) fields.push('how you are paying');
       return fields;
     }
 
@@ -493,6 +619,9 @@
         auction: parseMoney($('auction').value),
         auctionItem: $('auctionItem').value.trim(),
         paymentMethod: $('paymentMethod').value,
+        items: readItems().map(function (it) {
+          return { type: it.type, description: it.description, value: it.value, startingBid: it.startingBid };
+        }),
         notes: $('notes').value.trim(),
         website: $('website').value
       };
@@ -514,14 +643,20 @@
       new Promise(function (res) { setTimeout(function () { res({ ok: true }); }, 500); })
         .then(function (res) {
           if (!res.ok) throw new Error(res.error || 'Something went wrong.');
+          var total = payload.donation + payload.tickets + payload.sponsorship + payload.auction;
+          var count = payload.items.length;
+          var itemsText = count ? (count === 1 ? 'your auction item donation' : 'your ' + count + ' auction item donations') : '';
           if (staff) {
             try { localStorage.setItem('fcrStaffKey', payload.staffKey || ''); } catch (e) {}
-            $('thanks-msg').textContent = 'Recorded ' + fmt(payload.donation + payload.tickets + payload.sponsorship + payload.auction) + ' for ' + payload.name + '.';
+            var parts = [];
+            if (total > 0) parts.push(fmt(total));
+            if (count) parts.push(count === 1 ? '1 donated auction item' : count + ' donated auction items');
+            $('thanks-msg').textContent = 'Recorded ' + parts.join(' and ') + ' for ' + payload.name + '.';
           } else {
-            $('thanks-msg').textContent = 'We received your ' + fmt(payload.donation + payload.tickets + payload.sponsorship + payload.auction) + ' commitment. Thank you for supporting Fellowship Christian Retreat.';
+            var what = total > 0 ? 'your ' + fmt(total) + ' commitment' + (count ? ' and ' + itemsText : '') : itemsText;
+            $('thanks-msg').textContent = 'We received ' + what + '. Thank you for supporting Fellowship Christian Retreat.';
           }
-          var total = payload.donation + payload.tickets + payload.sponsorship + payload.auction;
-          if (!staff && payload.paymentMethod === 'PayPal' && paypalUrl) {
+          if (!staff && total > 0 && payload.paymentMethod === 'PayPal' && paypalUrl) {
             var link = paypalLinkFor(total);
             $('paypal-link').href = link.href;
             $('paypal-hint').textContent = link.prefilled
@@ -550,6 +685,8 @@
     $('again').addEventListener('click', function () {
       var key = $('staffKey').value;
       form.reset();
+      $('items-list').innerHTML = '';
+      syncItems();
       if (staff) { $('date').value = todayISO(); $('staffKey').value = key; }
       updateTotal();
       $('status').hidden = true;

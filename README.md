@@ -10,6 +10,7 @@ template in `template/`.
 | `index.html` | The landing page and form |
 | `config.js` | Where you paste the Google Apps Script URL |
 | `apps-script/Code.gs` | The script that writes submissions into the sheet |
+| `preview.html` | A preview copy that never saves anything. Rebuild it with `python3 tools/make_preview.py` |
 | `template/…v6.xlsx` | The original tracker template |
 
 ## How a submission maps to the sheet
@@ -26,6 +27,16 @@ template in `template/`.
 | M Payment Method | Cash, Check, Online Payment, Credit Card, or Other (the template's dropdown values). PayPal is recorded as **Online Payment**, with "PayPal" added to Notes. |
 | N Check / Ref # | Staff mode only |
 | O Payment Status | Public entries are always **Pending**. Staff choose Paid, Pending, or Partial. |
+
+**Donated auction items** (gift baskets, gift cards, art, and so on) go to a separate tab named
+**Donated Auction Items**, one row per item. The script creates that tab the first time
+someone donates an item. It has these columns: Date, Donor Name, Email, Phone, Address, Item Type,
+Item Description, Estimated Value, Suggested Starting Bid, Notes, and Item Status. Item Status
+starts as "Not yet received", and you can change it to Received or Auctioned. A submission that only
+donates an item doesn't add a row to the main tracker, because no money is involved.
+
+The form's **Auction item I won** box is for *paying* for an item someone won. That money goes in the
+tracker's Auction Amount column as before.
 
 Each submission goes into the first row between 6 and 500 where both Date and Name are empty.
 The template's sample rows are skipped. You can delete them at any time.
