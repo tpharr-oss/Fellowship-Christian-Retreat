@@ -66,6 +66,11 @@ Each browser remembers the key after its first successful staff entry.
    the branch that has these files and the folder to `/ (root)`. The form will be live at the
    Pages URL. Share `…/?staff` only with volunteers.
 
+**Can't find the Extensions menu (for example, on a phone)?** Create the script at
+**script.google.com → New project** instead and paste in `Code.gs`. Then add a second
+Script Property: `SHEET_ID`, set to the long ID in the sheet's address, between `/d/`
+and `/edit`. Everything else is the same.
+
 **If you change `Code.gs` later:** go to **Deploy → Manage deployments → Edit (pencil) →
 Version: New version → Deploy**. The URL stays the same.
 
