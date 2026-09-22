@@ -1,0 +1,558 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>FCR Gift Form Preview</title>
+  <meta name="robots" content="noindex">
+  <meta name="description" content="Give, buy tickets, sponsor, or record an auction win for the Fellowship Christian Retreat at Crow's Neck annual fundraising event.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lora:wght@500;600&family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --forest: #355E3B;
+      --forest-dark: #274A2C;
+      --olive: #6C7A47;
+      --cream: #F3EFE3;
+      --mint: #D9EDEA;
+      --bg: #FAF8F2;
+      --card: #FFFFFF;
+      --ink: #26302A;
+      --muted: #5C665F;
+      --line: #D8D3C4;
+      --error: #A3312A;
+      --focus: #6C7A47;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        --forest: #8CBF93;
+        --forest-dark: #A6D3AC;
+        --olive: #B3C084;
+        --cream: #2A3029;
+        --mint: #22362F;
+        --bg: #171C18;
+        --card: #1F2520;
+        --ink: #E9ECE6;
+        --muted: #A9B2AB;
+        --line: #3A433C;
+        --error: #F08A80;
+        --focus: #B3C084;
+      }
+    }
+    :root[data-theme="dark"] {
+      --forest: #8CBF93; --forest-dark: #A6D3AC; --olive: #B3C084; --cream: #2A3029;
+      --mint: #22362F; --bg: #171C18; --card: #1F2520; --ink: #E9ECE6; --muted: #A9B2AB;
+      --line: #3A433C; --error: #F08A80; --focus: #B3C084;
+    }
+
+    * { box-sizing: border-box; }
+    html { -webkit-text-size-adjust: 100%; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font: 17px/1.55 "Source Sans 3", system-ui, -apple-system, "Segoe UI", sans-serif;
+    }
+    .hero {
+      background: #355E3B;
+      color: #fff;
+      padding: 56px 16px 88px;
+      text-align: center;
+    }
+    .hero .eyebrow {
+      text-transform: uppercase;
+      letter-spacing: .14em;
+      font-size: 13px;
+      font-weight: 600;
+      color: #DDE6CF;
+      margin: 0 0 10px;
+    }
+    .hero h1 {
+      font-family: Lora, Georgia, serif;
+      font-weight: 600;
+      font-size: clamp(28px, 5vw, 42px);
+      line-height: 1.2;
+      margin: 0 auto 14px;
+      max-width: 720px;
+    }
+    .hero p { margin: 0 auto; max-width: 560px; color: #E8EEE0; }
+    .hero a { color: #fff; }
+
+    main { max-width: 760px; margin: -56px auto 48px; padding: 0 16px; }
+    form {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 28px;
+      box-shadow: 0 10px 30px rgba(0,0,0,.06);
+    }
+    @media (max-width: 520px) { form { padding: 20px 16px; } }
+
+    fieldset { border: 0; margin: 0 0 28px; padding: 0; min-width: 0; }
+    legend {
+      font-family: Lora, Georgia, serif;
+      font-size: 21px;
+      font-weight: 600;
+      color: var(--forest);
+      padding: 0;
+      margin-bottom: 4px;
+    }
+    .hint { color: var(--muted); font-size: 15px; margin: 0 0 14px; }
+
+    .grid { display: grid; gap: 14px; grid-template-columns: 1fr 1fr; }
+    .grid .full { grid-column: 1 / -1; }
+    .grid.addr { grid-template-columns: 2fr 1fr 1fr; }
+    @media (max-width: 560px) {
+      .grid, .grid.addr { grid-template-columns: 1fr; }
+    }
+
+    label { display: block; font-weight: 600; font-size: 15px; margin-bottom: 5px; }
+    label .opt { font-weight: 400; color: var(--muted); }
+    input, select, textarea {
+      width: 100%;
+      font: inherit;
+      color: var(--ink);
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px 12px;
+      min-height: 44px;
+    }
+    textarea { min-height: 84px; resize: vertical; }
+    input:focus, select:focus, textarea:focus {
+      outline: 2px solid var(--focus);
+      outline-offset: 1px;
+      border-color: var(--focus);
+    }
+    input[aria-invalid="true"] { border-color: var(--error); }
+
+    .amounts { display: grid; gap: 12px; grid-template-columns: repeat(2, 1fr); }
+    @media (max-width: 560px) { .amounts { grid-template-columns: 1fr; } }
+    .amount {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 12px 14px;
+      background: var(--bg);
+    }
+    .amount small { display: block; color: var(--muted); font-size: 14px; margin: -2px 0 8px; }
+    .money { position: relative; }
+    .money span {
+      position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+      color: var(--muted); pointer-events: none;
+    }
+    .money input { padding-left: 26px; font-variant-numeric: tabular-nums; }
+
+    .total {
+      display: flex; justify-content: space-between; align-items: baseline;
+      margin-top: 14px; padding: 14px 16px;
+      background: var(--mint); border-radius: 10px;
+    }
+    .total strong {
+      font-size: 26px; color: var(--forest); font-variant-numeric: tabular-nums;
+    }
+
+    .staff {
+      border: 1px dashed var(--olive);
+      border-radius: 10px;
+      padding: 18px;
+      background: var(--cream);
+    }
+    .staff legend { font-size: 18px; }
+    .badge {
+      display: inline-block; font-size: 12px; font-weight: 600; letter-spacing: .08em;
+      text-transform: uppercase; background: var(--olive); color: #fff;
+      border-radius: 99px; padding: 2px 10px; margin-left: 8px; vertical-align: middle;
+    }
+    .preview-bar {
+      background: var(--olive); color: #fff; text-align: center;
+      font-size: 15px; font-weight: 600; padding: 10px 16px;
+    }
+    [hidden] { display: none !important; }
+
+    .hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+
+    button[type="submit"] {
+      width: 100%;
+      font: inherit; font-weight: 600; font-size: 18px;
+      color: #fff; background: #355E3B;
+      border: 0; border-radius: 10px;
+      padding: 14px 20px; min-height: 52px; cursor: pointer;
+    }
+    button[type="submit"]:hover { background: #274A2C; }
+    button[type="submit"]:disabled { opacity: .6; cursor: progress; }
+
+    .status {
+      margin-top: 16px; padding: 12px 14px; border-radius: 8px; font-size: 16px;
+    }
+    .status.err { background: rgba(163,49,42,.1); color: var(--error); }
+    .status.ok { background: var(--mint); color: var(--forest); }
+
+    .thanks { text-align: center; padding: 16px 0; }
+    .thanks h2 { font-family: Lora, Georgia, serif; color: var(--forest); font-size: 28px; margin: 0 0 8px; }
+    .thanks button {
+      font: inherit; font-weight: 600; margin-top: 16px; padding: 10px 18px; min-height: 44px;
+      border-radius: 8px; border: 1px solid var(--forest); color: var(--forest);
+      background: transparent; cursor: pointer;
+    }
+
+    .paypal-btn {
+      display: inline-block; font-weight: 600; font-size: 18px; text-decoration: none;
+      color: #1B1B1B; background: #FFC439; border-radius: 10px;
+      padding: 14px 28px; min-height: 52px; margin-top: 4px;
+    }
+    .paypal-btn:hover { background: #F2BA36; }
+    #paypal-wrap + button { display: block; margin: 20px auto 0; }
+
+    footer { text-align: center; color: var(--muted); font-size: 14px; padding: 0 16px 40px; }
+    footer a { color: var(--forest); }
+  </style>
+</head>
+<body>
+  <div class="preview-bar" role="note">Preview only. Submissions aren't saved, and the PayPal button won't charge anything.</div>
+  <header class="hero">
+    <p class="eyebrow">Annual Fundraising Event</p>
+    <h1>Fellowship Christian Retreat at Crow's Neck</h1>
+    <p>Thank you for supporting the retreat. Use this form to make a donation, buy tickets, become a sponsor, or record an auction item you won. One payment can be split across all four.</p>
+  </header>
+
+  <main>
+    <form id="gift-form" novalidate>
+      <div id="form-body">
+        <fieldset>
+          <legend>Your information</legend>
+          <p class="hint">We'll use this to send your receipt and a thank-you note.</p>
+          <div class="grid">
+            <div class="full">
+              <label for="name">Full name or organization</label>
+              <input id="name" name="name" autocomplete="name" required>
+            </div>
+            <div>
+              <label for="email">Email</label>
+              <input id="email" name="email" type="email" autocomplete="email" required>
+            </div>
+            <div>
+              <label for="phone">Phone <span class="opt">(optional)</span></label>
+              <input id="phone" name="phone" type="tel" autocomplete="tel">
+            </div>
+          </div>
+          <div class="grid addr" style="margin-top:14px">
+            <div class="full" style="grid-column:1/-1">
+              <label for="street">Street address <span class="opt">(optional)</span></label>
+              <input id="street" name="street" autocomplete="street-address">
+            </div>
+            <div>
+              <label for="city">City</label>
+              <input id="city" name="city" autocomplete="address-level2">
+            </div>
+            <div>
+              <label for="state">State</label>
+              <input id="state" name="state" autocomplete="address-level1" maxlength="20">
+            </div>
+            <div>
+              <label for="zip">ZIP</label>
+              <input id="zip" name="zip" autocomplete="postal-code" inputmode="numeric" maxlength="10">
+            </div>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>Your gift</legend>
+          <p class="hint">Fill in any that apply. Leave the rest blank.</p>
+          <div class="amounts">
+            <div class="amount">
+              <label for="donation">Donation</label>
+              <small>A general gift to the retreat</small>
+              <div class="money"><span>$</span><input id="donation" name="donation" inputmode="decimal" placeholder="0.00"></div>
+            </div>
+            <div class="amount">
+              <label for="tickets">Tickets</label>
+              <small>Event admission</small>
+              <div class="money"><span>$</span><input id="tickets" name="tickets" inputmode="decimal" placeholder="0.00"></div>
+            </div>
+            <div class="amount">
+              <label for="sponsorship">Sponsorship</label>
+              <small>Business or family sponsor</small>
+              <div class="money"><span>$</span><input id="sponsorship" name="sponsorship" inputmode="decimal" placeholder="0.00"></div>
+            </div>
+            <div class="amount">
+              <label for="auction">Auction</label>
+              <small>Winning bid on an auction item</small>
+              <div class="money"><span>$</span><input id="auction" name="auction" inputmode="decimal" placeholder="0.00"></div>
+            </div>
+          </div>
+          <div id="auction-item-wrap" style="margin-top:14px" hidden>
+            <label for="auctionItem">Auction item you won</label>
+            <input id="auctionItem" name="auctionItem" placeholder="e.g. Weekend cabin stay">
+          </div>
+          <div class="total" aria-live="polite">
+            <span>Total</span>
+            <strong id="total">$0.00</strong>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>Payment</legend>
+          <div class="grid">
+            <div class="full">
+              <label for="paymentMethod">How are you paying?</label>
+              <select id="paymentMethod" name="paymentMethod" required>
+                <option value="">Choose one</option>
+                <option id="paypal-option" value="PayPal">PayPal</option>
+                <option>Check</option>
+                <option>Cash</option>
+                <option>Online Payment</option>
+                <option>Credit Card</option>
+                <option>Other</option>
+              </select>
+            </div>
+            <div class="full">
+              <label for="notes">Notes <span class="opt">(optional)</span></label>
+              <textarea id="notes" name="notes" placeholder="Sponsorship level, in honor of, anything else we should know"></textarea>
+            </div>
+          </div>
+        </fieldset>
+
+        <fieldset class="staff" id="staff-section" hidden>
+          <legend>Staff entry <span class="badge">Internal</span></legend>
+          <p class="hint">Only shown in staff mode. These fill the Date, Check / Ref #, and Payment Status columns.</p>
+          <div class="grid">
+            <div>
+              <label for="date">Date received</label>
+              <input id="date" name="date" type="date">
+            </div>
+            <div>
+              <label for="paymentStatus">Payment status</label>
+              <select id="paymentStatus" name="paymentStatus">
+                <option>Paid</option>
+                <option>Pending</option>
+                <option>Partial</option>
+              </select>
+            </div>
+            <div>
+              <label for="reference">Check / Ref #</label>
+              <input id="reference" name="reference">
+            </div>
+            <div>
+              <label for="staffKey">Staff key</label>
+              <input id="staffKey" name="staffKey" type="password" autocomplete="off">
+            </div>
+          </div>
+        </fieldset>
+
+        <div class="hp" aria-hidden="true">
+          <label for="website">Website</label>
+          <input id="website" name="website" tabindex="-1" autocomplete="off">
+        </div>
+
+        <button type="submit" id="submit">Submit</button>
+        <div id="status" class="status" role="status" hidden></div>
+      </div>
+
+      <div id="thanks" class="thanks" hidden>
+        <h2>Thank you!</h2>
+        <p id="thanks-msg">Your submission has been received. We're grateful for your support of Fellowship Christian Retreat.</p>
+        <div id="paypal-wrap" hidden>
+          <p class="hint" id="paypal-hint"></p>
+          <a id="paypal-link" class="paypal-btn" target="_blank" rel="noopener">Pay with PayPal</a>
+        </div>
+        <button type="button" id="again">Submit another</button>
+      </div>
+    </form>
+  </main>
+
+  <footer>
+    <a href="https://www.fcrcrowsneck.org/" target="_blank" rel="noopener">fcrcrowsneck.org</a>
+  </footer>
+
+  <script>
+  // Preview copy of index.html: never contacts Google or PayPal.
+  window.FCR_CONFIG = {
+    scriptUrl: 'preview',
+    paypalUrl: 'https://www.paypal.com/donate/?hosted_button_id=RM5T2WRZLW4S2'
+  };
+  </script>
+  <script>
+  (function () {
+    var form = document.getElementById('gift-form');
+    var params = new URLSearchParams(location.search);
+    var staff = false;
+    var AMOUNTS = ['donation', 'tickets', 'sponsorship', 'auction'];
+
+    var $ = function (id) { return document.getElementById(id); };
+
+    function todayISO() {
+      var d = new Date();
+      return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+    }
+
+    var paypalUrl = ((window.FCR_CONFIG && window.FCR_CONFIG.paypalUrl) || '').trim().replace(/\/+$/, '');
+    if (!paypalUrl) $('paypal-option').remove();
+
+    // PayPal.Me links accept the amount as the last path segment.
+    function paypalLinkFor(total) {
+      if (/^https:\/\/(www\.)?paypal\.me\/[^\/?#]+$/i.test(paypalUrl)) {
+        return { href: paypalUrl + '/' + total.toFixed(2) + 'USD', prefilled: true };
+      }
+      return { href: paypalUrl, prefilled: false };
+    }
+
+    if (staff) {
+      $('staff-section').hidden = false;
+      $('date').value = todayISO();
+      $('submit').textContent = 'Record payment';
+      document.title = 'FCR Fundraiser — Staff Entry';
+      try { $('staffKey').value = localStorage.getItem('fcrStaffKey') || ''; } catch (e) {}
+    } else {
+      $('submit').textContent = 'Submit my gift';
+    }
+
+    function parseMoney(v) {
+      v = String(v || '').replace(/[$,\s]/g, '');
+      if (v === '') return 0;
+      var n = Number(v);
+      return isFinite(n) && n >= 0 ? Math.round(n * 100) / 100 : NaN;
+    }
+    function fmt(n) {
+      return '$' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+    function updateTotal() {
+      var sum = 0;
+      AMOUNTS.forEach(function (k) {
+        var n = parseMoney($(k).value);
+        $(k).setAttribute('aria-invalid', isNaN(n) ? 'true' : 'false');
+        if (!isNaN(n)) sum += n;
+      });
+      $('total').textContent = fmt(sum);
+      $('auction-item-wrap').hidden = !(parseMoney($('auction').value) > 0);
+      return sum;
+    }
+    AMOUNTS.forEach(function (k) { $(k).addEventListener('input', updateTotal); });
+    ['name', 'email'].forEach(function (k) {
+      $(k).addEventListener('input', function () { $(k).removeAttribute('aria-invalid'); });
+    });
+
+    function showStatus(msg, ok) {
+      var s = $('status');
+      s.textContent = msg;
+      s.className = 'status ' + (ok ? 'ok' : 'err');
+      s.hidden = false;
+    }
+
+    function validate() {
+      var fields = [];
+      var name = $('name').value.trim();
+      var email = $('email').value.trim();
+      $('name').setAttribute('aria-invalid', name ? 'false' : 'true');
+      var emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+      $('email').setAttribute('aria-invalid', emailOk ? 'false' : 'true');
+      if (!name) fields.push('your name');
+      if (!emailOk) fields.push('a valid email');
+      var bad = AMOUNTS.some(function (k) { return isNaN(parseMoney($(k).value)); });
+      if (bad) fields.push('amounts as numbers only');
+      else if (updateTotal() <= 0) fields.push('at least one amount');
+      if (!$('paymentMethod').value) fields.push('how you are paying');
+      return fields;
+    }
+
+    function joinAddress() {
+      var street = $('street').value.trim();
+      var city = $('city').value.trim();
+      var state = $('state').value.trim();
+      var zip = $('zip').value.trim();
+      var cityState = [city, [state, zip].filter(Boolean).join(' ')].filter(Boolean).join(', ');
+      return [street, cityState].filter(Boolean).join(', ');
+    }
+
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var missing = validate();
+      if (missing.length) {
+        showStatus('Please add ' + missing.join(', ') + '.', false);
+        return;
+      }
+      var url = (window.FCR_CONFIG && window.FCR_CONFIG.scriptUrl) || '';
+      if (!url) {
+        showStatus('This form is not connected yet. Add the Apps Script URL to config.js.', false);
+        return;
+      }
+
+      var payload = {
+        name: $('name').value.trim(),
+        email: $('email').value.trim(),
+        phone: $('phone').value.trim(),
+        address: joinAddress(),
+        donation: parseMoney($('donation').value),
+        tickets: parseMoney($('tickets').value),
+        sponsorship: parseMoney($('sponsorship').value),
+        auction: parseMoney($('auction').value),
+        auctionItem: $('auctionItem').value.trim(),
+        paymentMethod: $('paymentMethod').value,
+        notes: $('notes').value.trim(),
+        website: $('website').value
+      };
+      if (staff) {
+        payload.staff = true;
+        payload.date = $('date').value;
+        payload.paymentStatus = $('paymentStatus').value;
+        payload.reference = $('reference').value.trim();
+        payload.staffKey = $('staffKey').value;
+      }
+
+      var btn = $('submit');
+      btn.disabled = true;
+      var label = btn.textContent;
+      btn.textContent = 'Sending…';
+      $('status').hidden = true;
+
+      // Preview: pretend the submission succeeded.
+      new Promise(function (res) { setTimeout(function () { res({ ok: true }); }, 500); })
+        .then(function (res) {
+          if (!res.ok) throw new Error(res.error || 'Something went wrong.');
+          if (staff) {
+            try { localStorage.setItem('fcrStaffKey', payload.staffKey || ''); } catch (e) {}
+            $('thanks-msg').textContent = 'Recorded ' + fmt(payload.donation + payload.tickets + payload.sponsorship + payload.auction) + ' for ' + payload.name + '.';
+          } else {
+            $('thanks-msg').textContent = 'We received your ' + fmt(payload.donation + payload.tickets + payload.sponsorship + payload.auction) + ' commitment. Thank you for supporting Fellowship Christian Retreat.';
+          }
+          var total = payload.donation + payload.tickets + payload.sponsorship + payload.auction;
+          if (!staff && payload.paymentMethod === 'PayPal' && paypalUrl) {
+            var link = paypalLinkFor(total);
+            $('paypal-link').href = link.href;
+            $('paypal-hint').textContent = link.prefilled
+              ? 'One more step: finish your ' + fmt(total) + ' payment on PayPal.'
+              : 'One more step: finish your payment on PayPal. Please enter ' + fmt(total) + ' as the amount.';
+            $('paypal-wrap').hidden = false;
+            $('paypal-link').removeAttribute('href');
+            $('paypal-link').setAttribute('aria-disabled', 'true');
+            $('paypal-hint').textContent += ' (In the live form, this button opens the retreat\'s PayPal page.)';
+          } else {
+            $('paypal-wrap').hidden = true;
+          }
+          $('form-body').hidden = true;
+          $('thanks').hidden = false;
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        })
+        .catch(function (err) {
+          showStatus((err && err.message) || 'Could not submit. Please try again.', false);
+        })
+        .finally(function () {
+          btn.disabled = false;
+          btn.textContent = label;
+        });
+    });
+
+    $('again').addEventListener('click', function () {
+      var key = $('staffKey').value;
+      form.reset();
+      if (staff) { $('date').value = todayISO(); $('staffKey').value = key; }
+      updateTotal();
+      $('status').hidden = true;
+      $('thanks').hidden = true;
+      $('form-body').hidden = false;
+      $('name').focus();
+    });
+  })();
+  </script>
+</body>
+</html>
