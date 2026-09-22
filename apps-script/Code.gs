@@ -9,6 +9,9 @@
  * Setup: see README.md. Deploy as a Web app (Execute as: Me, Access: Anyone).
  * Optional: set a Script Property named STAFF_KEY. When set, only submissions
  * that include the matching key can record Payment Status and Check / Ref #.
+ *
+ * Items donated to the auction go to a separate "Donated Auction Items" tab,
+ * which is created automatically the first time one is submitted.
  */
 
 var SHEET_NAME = 'FCR Fundraiser Tracker';
@@ -18,6 +21,12 @@ var LAST_DATA_ROW = 500;  // Template formulas / validation run through row 500
 var PAYMENT_METHODS = ['Cash', 'Check', 'Online Payment', 'Credit Card', 'Other'];
 var PAYMENT_STATUSES = ['Paid', 'Pending', 'Partial'];
 var MAX_TEXT = 500;
+
+var ITEMS_SHEET_NAME = 'Donated Auction Items';
+var ITEMS_HEADERS = ['Date', 'Donor Name', 'Email', 'Phone', 'Address', 'Item Type',
+  'Item Description', 'Estimated Value', 'Suggested Starting Bid', 'Notes', 'Item Status'];
+var ITEM_TYPES = ['Gift basket', 'Gift card', 'Art', 'Experience or service', 'Other'];
+var MAX_ITEMS = 10;
 
 function doPost(e) {
   try {
@@ -34,7 +43,13 @@ function doPost(e) {
       return json_({ ok: false, error: 'Staff key is incorrect.' });
     }
 
-    var row = buildRow_(data, isStaff, new Date());
+    var now = new Date();
+    var items = buildItemRows_(data, isStaff, now);
+    var hasMoney = moneyTotal_(data) > 0;
+    if (!hasMoney && !items.length) {
+      throw new Error('Enter at least one amount or an auction item you are donating.');
+    }
+    var row = hasMoney ? buildRow_(data, isStaff, now) : null;
 
     var lock = LockService.getScriptLock();
     lock.waitLock(20000);
@@ -44,11 +59,18 @@ function doPost(e) {
       var sheetId = props.getProperty('SHEET_ID');
       var book = sheetId ? SpreadsheetApp.openById(sheetId) : SpreadsheetApp.getActiveSpreadsheet();
       if (!book) throw new Error('Spreadsheet not found. Set the SHEET_ID script property.');
-      var sheet = book.getSheetByName(SHEET_NAME);
-      if (!sheet) throw new Error('Sheet "' + SHEET_NAME + '" not found.');
-      var r = nextEmptyRow_(sheet);
-      sheet.getRange(r, 1, 1, 11).setValues([row.slice(0, 11)]);  // A–K
-      sheet.getRange(r, 13, 1, 3).setValues([row.slice(11)]);      // M–O
+      if (row) {
+        var sheet = book.getSheetByName(SHEET_NAME);
+        if (!sheet) throw new Error('Sheet "' + SHEET_NAME + '" not found.');
+        var r = nextEmptyRow_(sheet);
+        sheet.getRange(r, 1, 1, 11).setValues([row.slice(0, 11)]);  // A–K
+        sheet.getRange(r, 13, 1, 3).setValues([row.slice(11)]);      // M–O
+      }
+      if (items.length) {
+        var itemsSheet = itemsSheet_(book);
+        var start = itemsSheet.getLastRow() + 1;
+        itemsSheet.getRange(start, 1, items.length, ITEMS_HEADERS.length).setValues(items);
+      }
       SpreadsheetApp.flush();
     } finally {
       lock.releaseLock();
@@ -122,6 +144,63 @@ function buildRow_(data, isStaff, now) {
     ref,                           // N Check / Ref #
     status                         // O Payment Status
   ];
+}
+
+/** Sum of the four amounts. Throws if any amount isn't a valid number. */
+function moneyTotal_(data) {
+  return money_(data.donation, 'Donation') + money_(data.tickets, 'Tickets') +
+    money_(data.sponsorship, 'Sponsorship') + money_(data.auction, 'Auction');
+}
+
+/** One row per donated auction item, for the Donated Auction Items tab. */
+function buildItemRows_(data, isStaff, now) {
+  var list = Array.isArray(data.items) ? data.items : [];
+  if (!list.length) return [];
+  if (list.length > MAX_ITEMS) throw new Error('Please list up to ' + MAX_ITEMS + ' items per submission.');
+
+  var name = clean_(data.name);
+  var email = clean_(data.email);
+  if (!name) throw new Error('Name is required.');
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    throw new Error('A valid email is required.');
+  }
+  var date = now;
+  if (isStaff && data.date && /^\d{4}-\d{2}-\d{2}$/.test(data.date)) {
+    var p = data.date.split('-');
+    date = new Date(Number(p[0]), Number(p[1]) - 1, Number(p[2]));
+  }
+  var notes = clean_(data.notes);
+  if (!isStaff) notes = notes ? 'Online form: ' + notes : 'Online form';
+
+  return list.map(function (it, i) {
+    it = it || {};
+    var description = clean_(it.description);
+    if (!description) throw new Error('Describe donated item ' + (i + 1) + '.');
+    var value = money_(it.value, 'Estimated value for item ' + (i + 1));
+    if (value <= 0) throw new Error('Enter an estimated value for donated item ' + (i + 1) + '.');
+    var bid = money_(it.startingBid, 'Starting bid for item ' + (i + 1));
+    return [
+      date, name, clean_(data.address), clean_(data.phone), email,
+      ITEM_TYPES.indexOf(it.type) >= 0 ? it.type : 'Other',
+      description, value, bid || '', notes, 'Not yet received'
+    ];
+  });
+}
+
+/** The Donated Auction Items tab, created with headers on first use. */
+function itemsSheet_(book) {
+  var sheet = book.getSheetByName(ITEMS_SHEET_NAME);
+  if (sheet) return sheet;
+  sheet = book.insertSheet(ITEMS_SHEET_NAME);
+  sheet.getRange(1, 1, 1, ITEMS_HEADERS.length).setValues([ITEMS_HEADERS])
+    .setFontWeight('bold').setFontColor('#FFFFFF').setBackground('#355E3B');
+  sheet.setFrozenRows(1);
+  sheet.getRange('A2:A').setNumberFormat('m/d/yyyy');
+  sheet.getRange('H2:I').setNumberFormat('$#,##0.00');
+  sheet.getRange('K2:K').setDataValidation(SpreadsheetApp.newDataValidation()
+    .requireValueInList(['Not yet received', 'Received', 'Auctioned'], true).build());
+  sheet.setColumnWidth(7, 320);
+  return sheet;
 }
 
 /** First row at or below FIRST_DATA_ROW with nothing in Date or Name. */
