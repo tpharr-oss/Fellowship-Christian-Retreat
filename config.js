@@ -6,5 +6,5 @@ window.FCR_CONFIG = {
   // The retreat's PayPal link. Leave blank to hide the PayPal option.
   // A PayPal.Me link (https://paypal.me/YourName) gets the total filled in
   // automatically. Any other PayPal link opens as-is and the payer types the amount.
-  paypalUrl: ''
+  paypalUrl: 'https://www.paypal.com/donate/?hosted_button_id=RM5T2WRZLW4S2'
 };
