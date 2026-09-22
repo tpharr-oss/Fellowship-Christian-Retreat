@@ -302,7 +302,7 @@
                 <option id="paypal-option" value="PayPal">Pay online now (card, PayPal, or Venmo)</option>
                 <option>Check</option>
                 <option>Cash</option>
-                <option>Online Payment</option>
+                <option id="online-option">Online Payment</option>
                 <option id="card-option">Credit Card</option>
                 <option>Other</option>
               </select>
@@ -390,8 +390,9 @@
 
     var paypalUrl = ((window.FCR_CONFIG && window.FCR_CONFIG.paypalUrl) || '').trim().replace(/\/+$/, '');
     if (!paypalUrl) $('paypal-option').remove();
-    // Donors pay by card through the online option; staff can still log in-person card payments.
-    if (!staff) $('card-option').remove();
+    // Donors pay online through the "Pay online now" option; staff keep the
+    // sheet's other methods for logging payments by hand.
+    if (!staff) { $('card-option').remove(); $('online-option').remove(); }
 
     // PayPal.Me links accept the amount as the last path segment.
     function paypalLinkFor(total) {
