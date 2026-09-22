@@ -10,5 +10,5 @@ window.FCR_CONFIG = {
 
   // Shows the "Donating an item to the auction?" section. Turn on only after the
   // Google script has been updated to a version that records donated items.
-  itemDonations: false
+  itemDonations: true
 };
