@@ -39,7 +39,12 @@ function doPost(e) {
     var lock = LockService.getScriptLock();
     lock.waitLock(20000);
     try {
-      var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAME);
+      // SHEET_ID is only needed when the script was created at script.google.com
+      // instead of from the sheet's Extensions menu.
+      var sheetId = props.getProperty('SHEET_ID');
+      var book = sheetId ? SpreadsheetApp.openById(sheetId) : SpreadsheetApp.getActiveSpreadsheet();
+      if (!book) throw new Error('Spreadsheet not found. Set the SHEET_ID script property.');
+      var sheet = book.getSheetByName(SHEET_NAME);
       if (!sheet) throw new Error('Sheet "' + SHEET_NAME + '" not found.');
       var r = nextEmptyRow_(sheet);
       sheet.getRange(r, 1, 1, 11).setValues([row.slice(0, 11)]);  // A–K
