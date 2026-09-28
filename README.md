@@ -20,13 +20,14 @@ template in `template/`.
 | A Date | Date submitted (staff can choose a date) |
 | B Name, D Phone, E Email | Form fields |
 | C Address | Street, City, State, and ZIP combined, e.g. `123 Main St, Iuka, MS 38852` |
-| F–I Donation / Tickets / Sponsorship / Auction | The four amount boxes (blank = 0) |
+| F–I Donation / Tickets / Sponsorship / Auction | The four amount boxes (blank = 0). Tickets Amount is the ticket count × ticket price. |
 | J Auction Item / Details | Shown only when an Auction amount is entered |
 | K Other / Notes | Notes. Public entries start with "Online form" so you can tell them apart. |
 | L Total Payment | **Not written.** The sheet's own formula keeps calculating it. |
 | M Payment Method | Cash, Check, Online Payment, Credit Card, or Other (the template's dropdown values). PayPal is recorded as **Online Payment**, with "PayPal" added to Notes. |
 | N Check / Ref # | Staff mode only |
 | O Payment Status | Public entries are always **Pending**. Staff choose Paid, Pending, or Partial. |
+| P Number of Tickets | How many tickets. The form asks for a count and multiplies by `ticketPrice` in `config.js` ($50) to fill Tickets Amount. The script adds this column's header on first use. |
 
 **Donated auction items** (gift baskets, gift cards, art, and so on) go to a separate tab named
 **Donated Auction Items**, one row per item. The script creates that tab the first time

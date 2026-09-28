@@ -10,5 +10,8 @@ window.FCR_CONFIG = {
 
   // Shows the "Donating an item to the auction?" section. Turn on only after the
   // Google script has been updated to a version that records donated items.
-  itemDonations: true
+  itemDonations: true,
+
+  // Price of one gala ticket. The form multiplies this by the number of tickets.
+  ticketPrice: 50
 };

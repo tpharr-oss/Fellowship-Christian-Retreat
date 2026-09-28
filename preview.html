@@ -185,6 +185,9 @@
       border: 1px solid var(--forest); border-radius: 8px; padding: 10px 16px;
       min-height: 44px; margin-top: 12px; cursor: pointer;
     }
+    .qty-row { display: flex; align-items: center; gap: 12px; }
+    .qty-row input { max-width: 110px; font-variant-numeric: tabular-nums; }
+    .subtotal { color: var(--muted); font-variant-numeric: tabular-nums; }
     .preview-bar {
       background: var(--olive); color: #fff; text-align: center;
       font-size: 15px; font-weight: 600; padding: 10px 16px;
@@ -288,9 +291,12 @@
               <div class="money"><span>$</span><input id="donation" name="donation" inputmode="decimal" placeholder="0.00"></div>
             </div>
             <div class="amount">
-              <label for="tickets">Tickets</label>
-              <small>Event admission</small>
-              <div class="money"><span>$</span><input id="tickets" name="tickets" inputmode="decimal" placeholder="0.00"></div>
+              <label for="tickets">Number of tickets</label>
+              <small>Event admission, <span id="ticket-price">$50</span> each</small>
+              <div class="qty-row">
+                <input id="tickets" name="tickets" type="number" inputmode="numeric" min="0" max="100" step="1" placeholder="0">
+                <span id="ticket-subtotal" class="subtotal">= $0.00</span>
+              </div>
             </div>
             <div class="amount">
               <label for="sponsorship">Sponsorship</label>
@@ -407,7 +413,8 @@
   window.FCR_CONFIG = {
     scriptUrl: 'preview',
     paypalUrl: 'https://www.paypal.com/donate/?hosted_button_id=RM5T2WRZLW4S2',
-    itemDonations: true
+    itemDonations: true,
+    ticketPrice: 50
   };
   </script>
   <script>
@@ -416,6 +423,8 @@
     var params = new URLSearchParams(location.search);
     var staff = false;
     var AMOUNTS = ['donation', 'tickets', 'sponsorship', 'auction'];
+    var TICKET_PRICE = Number(window.FCR_CONFIG && window.FCR_CONFIG.ticketPrice) || 50;
+    var MAX_TICKETS = 100;
 
     var $ = function (id) { return document.getElementById(id); };
 
@@ -457,13 +466,28 @@
     function fmt(n) {
       return '$' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     }
+    // Tickets are entered as a count; everything else as dollars.
+    function ticketCount() {
+      var v = String($('tickets').value || '').trim();
+      if (v === '') return 0;
+      var n = Number(v);
+      return Number.isInteger(n) && n >= 0 && n <= MAX_TICKETS ? n : NaN;
+    }
+    function amountOf(k) {
+      if (k !== 'tickets') return parseMoney($(k).value);
+      var c = ticketCount();
+      return isNaN(c) ? NaN : c * TICKET_PRICE;
+    }
+    $('ticket-price').textContent = fmt(TICKET_PRICE).replace('.00', '');
     function updateTotal() {
       var sum = 0;
       AMOUNTS.forEach(function (k) {
-        var n = parseMoney($(k).value);
+        var n = amountOf(k);
         $(k).setAttribute('aria-invalid', isNaN(n) ? 'true' : 'false');
         if (!isNaN(n)) sum += n;
       });
+      var tix = amountOf('tickets');
+      $('ticket-subtotal').textContent = isNaN(tix) ? 'Whole number, up to ' + MAX_TICKETS : '= ' + fmt(tix);
       $('total').textContent = fmt(sum);
       $('auction-item-wrap').hidden = !(parseMoney($('auction').value) > 0);
       $('no-payment-hint').hidden = !(sum <= 0 && $('donatingItem').checked);
@@ -566,7 +590,8 @@
       $('email').setAttribute('aria-invalid', emailOk ? 'false' : 'true');
       if (!name) fields.push('your name');
       if (!emailOk) fields.push('a valid email');
-      var bad = AMOUNTS.some(function (k) { return isNaN(parseMoney($(k).value)); });
+      var badTickets = isNaN(ticketCount());
+      var bad = AMOUNTS.some(function (k) { return isNaN(amountOf(k)); });
       var total = bad ? 0 : updateTotal();
       var items = readItems();
       var missingDesc = false, missingValue = false;
@@ -578,7 +603,8 @@
         if (!it.description) missingDesc = true;
         if (!valueOk || isNaN(it.startingBid)) missingValue = true;
       });
-      if (bad) fields.push('amounts as numbers only');
+      if (badTickets) fields.push('the number of tickets as a whole number');
+      else if (bad) fields.push('amounts as numbers only');
       else if (total <= 0 && !items.length) fields.push('at least one amount or an auction item you\'re donating');
       if (missingDesc) fields.push('a description of each donated item');
       if (missingValue) fields.push('an estimated value for each donated item');
@@ -614,7 +640,8 @@
         phone: $('phone').value.trim(),
         address: joinAddress(),
         donation: parseMoney($('donation').value),
-        tickets: parseMoney($('tickets').value),
+        tickets: amountOf('tickets'),
+        ticketCount: ticketCount(),
         sponsorship: parseMoney($('sponsorship').value),
         auction: parseMoney($('auction').value),
         auctionItem: $('auctionItem').value.trim(),
@@ -653,7 +680,8 @@
             if (count) parts.push(count === 1 ? '1 donated auction item' : count + ' donated auction items');
             $('thanks-msg').textContent = 'Recorded ' + parts.join(' and ') + ' for ' + payload.name + '.';
           } else {
-            var what = total > 0 ? 'your ' + fmt(total) + ' commitment' + (count ? ' and ' + itemsText : '') : itemsText;
+            var tixText = payload.ticketCount ? ' (including ' + payload.ticketCount + (payload.ticketCount === 1 ? ' ticket)' : ' tickets)') : '';
+            var what = total > 0 ? 'your ' + fmt(total) + ' commitment' + tixText + (count ? ' and ' + itemsText : '') : itemsText;
             $('thanks-msg').textContent = 'We received ' + what + '. Thank you for supporting Fellowship Christian Retreat.';
           }
           if (!staff && total > 0 && payload.paymentMethod === 'PayPal' && paypalUrl) {

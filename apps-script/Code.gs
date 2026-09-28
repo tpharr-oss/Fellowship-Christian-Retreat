@@ -22,6 +22,12 @@ var PAYMENT_METHODS = ['Cash', 'Check', 'Online Payment', 'Credit Card', 'Other'
 var PAYMENT_STATUSES = ['Paid', 'Pending', 'Partial'];
 var MAX_TEXT = 500;
 
+// Column P holds the number of tickets. Its header is added on first use.
+var TICKET_COUNT_COL = 16;
+var TICKET_COUNT_HEADER = 'Number of Tickets';
+var HEADER_ROW = 5;
+var MAX_TICKETS = 100;
+
 var ITEMS_SHEET_NAME = 'Donated Auction Items';
 var ITEMS_HEADERS = ['Date', 'Donor Name', 'Email', 'Phone', 'Address', 'Item Type',
   'Item Description', 'Estimated Value', 'Suggested Starting Bid', 'Notes', 'Item Status'];
@@ -64,7 +70,9 @@ function doPost(e) {
         if (!sheet) throw new Error('Sheet "' + SHEET_NAME + '" not found.');
         var r = nextEmptyRow_(sheet);
         sheet.getRange(r, 1, 1, 11).setValues([row.slice(0, 11)]);  // A–K
-        sheet.getRange(r, 13, 1, 3).setValues([row.slice(11)]);      // M–O
+        sheet.getRange(r, 13, 1, 3).setValues([row.slice(11, 14)]);  // M–O
+        ensureTicketHeader_(sheet);
+        sheet.getRange(r, TICKET_COUNT_COL).setValue(row[14]);        // P
       }
       if (items.length) {
         var itemsSheet = itemsSheet_(book);
@@ -87,7 +95,7 @@ function doGet() {
 }
 
 /**
- * Turns a submission into the 14 values for columns A–K and M–O.
+ * Turns a submission into the 15 values for columns A–K and M–P.
  * Throws with a readable message when the submission is invalid.
  */
 function buildRow_(data, isStaff, now) {
@@ -142,8 +150,29 @@ function buildRow_(data, isStaff, now) {
     notes,                         // K Other / Notes
     method,                        // M Payment Method
     ref,                           // N Check / Ref #
-    status                         // O Payment Status
+    status,                        // O Payment Status
+    ticketCount_(data)             // P Number of Tickets
   ];
+}
+
+/** Whole number of tickets, or '' when none were given. */
+function ticketCount_(data) {
+  var v = data.ticketCount;
+  if (v === null || v === undefined || v === '' || Number(v) === 0) return '';
+  var n = Number(v);
+  if (!isFinite(n) || n < 0 || Math.floor(n) !== n || n > MAX_TICKETS) {
+    throw new Error('Number of tickets must be a whole number up to ' + MAX_TICKETS + '.');
+  }
+  return n;
+}
+
+/** Adds the "Number of Tickets" header to column P, styled like column O. */
+function ensureTicketHeader_(sheet) {
+  var cell = sheet.getRange(HEADER_ROW, TICKET_COUNT_COL);
+  if (cell.getValue() !== '') return;
+  cell.setValue(TICKET_COUNT_HEADER);
+  sheet.getRange(HEADER_ROW, TICKET_COUNT_COL - 1).copyFormatToRange(sheet,
+    TICKET_COUNT_COL, TICKET_COUNT_COL, HEADER_ROW, HEADER_ROW);
 }
 
 /** Sum of the four amounts. Throws if any amount isn't a valid number. */

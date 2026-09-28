@@ -33,7 +33,8 @@ rep('<script src="config.js"></script>', '''<script>
   window.FCR_CONFIG = {
     scriptUrl: 'preview',
     paypalUrl: 'https://www.paypal.com/donate/?hosted_button_id=RM5T2WRZLW4S2',
-    itemDonations: true
+    itemDonations: true,
+    ticketPrice: 50
   };
   </script>''')
 rep("var staff = params.has('staff');", 'var staff = false;')
